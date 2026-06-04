@@ -21,7 +21,7 @@ class Certificado(SQLModel, table = True):
     __tablename__ = "certificado"
     id: int | None = Field(default= None, primary_key= True)
     carga_horaria: int
-    id_usuario: int = Field(foreign_key= "usuario.id", primary_key= True)
-    id_evento: int = Field(foreign_key= "evento.id", primary_key= True)
+    id_usuario: int = Field(foreign_key= "usuario.id")
+    id_evento: int = Field(foreign_key= "evento.id")
     usuario: Usuario = Relationship(back_populates= "certificados")
     evento: Evento = Relationship(back_populates= "certificados")

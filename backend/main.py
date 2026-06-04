@@ -33,20 +33,6 @@ def criar_certificado(certificado: Certificado, session: Session = Depends(get_s
         session.rollback()
         raise HTTPException(status_code= 400, detail = f"ERRO PRA CRIAR CERTIFICADO. VERIFIQUE SE O USUÁRIO E O EVENTO EXISTEM. Mais sobre o problema: {str(e)}")
 
-@app.put("/certificados/{certificado_id}", response_model= Certificado)
-def atualizar_certificado(certificado_id: int, certificado_atualizado: Certificado, session: Session = Depends(get_session)):
-    db_certificado = session.get(Certificado, certificado_id)
-    if not db_certificado:
-        raise HTTPException(status_code= 404, detail = "CERTIFICADO NAO ENCONTRADO")
-    dados_novos = certificado_atualizado.dict(exclude_unset= True)
-    for chave, valor in dados_novos.items():
-        setattr(db_certificado, chave, valor)
-    
-    session.add(db_certificado)
-    session.commit()
-    session.refresh(db_certificado)
-    return db_certificado
-
 @app.delete("/certificados/{certificado_id}")
 def deletar_certificado(certificado_id: int, session: Session= Depends(get_session)):
     db_certificado = session.get(Certificado, certificado_id)
