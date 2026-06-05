@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session, select
 from database import get_session
 from models import Certificado
+from schemas import CertificadoSchema
 
 router = APIRouter(prefix="/certificados", tags=["Certificados"])
 
@@ -16,7 +17,9 @@ def listar_certificados(session: Session= Depends(get_session)):
 
 # cria um certificado
 @router.post("/", response_model= Certificado, status_code= status.HTTP_201_CREATED)
-def criar_certificado(certificado: Certificado, session: Session = Depends(get_session)):
+def criar_certificado(certificado_novo: CertificadoSchema, session: Session = Depends(get_session)):
+
+    certificado = Certificado.model_validate(certificado_novo)
     try:
         session.add(certificado)
         session.commit()
@@ -47,7 +50,7 @@ def buscar_certificado_por_id(certificado_id: int, session: Session=Depends(get_
 
 # edita um certificado especifico pelo id
 @router.put("/{certificado_id}", response_model= Certificado)
-def atualizar_certificado(certificado_id: int, certificado_atualizado: Certificado, session: Session= Depends(get_session)):
+def atualizar_certificado(certificado_id: int, certificado_atualizado: CertificadoSchema, session: Session= Depends(get_session)):
     db_certificado = session.get(Certificado, certificado_id)
     if not db_certificado:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CERTIFICADO NÃO ENCONTRADO")
