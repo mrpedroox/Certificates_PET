@@ -9,13 +9,13 @@ router = APIRouter(prefix="/usuarios", tags=["Usuários"])
             Usuarios
 '''
 # retorna uma lista com todos os usuarios
-@router.get("/usuarios/", response_model= list[Usuario])
+@router.get("/", response_model= list[Usuario])
 def listar_usuarios(session: Session= Depends(get_session)):
     usuarios = session.exec(select(Usuario)).all()
     return usuarios
 
 # cria um usuario
-@router.post("/usuarios/", response_model= Usuario, status_code= status.HTTP_201_CREATED)
+@router.post("/", response_model= Usuario, status_code= status.HTTP_201_CREATED)
 def criar_usuario(usuario: Usuario, session: Session = Depends(get_session)):
     try:
         session.add(usuario)
@@ -27,7 +27,7 @@ def criar_usuario(usuario: Usuario, session: Session = Depends(get_session)):
         raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR USUÁRIO. VERIFIQUE SE O USUÁRIO JÁ EXISTE.\n Mais sobre o problema: {str(e)}")
 
 # deleta um usuario pelo id
-@router.delete("/usuarios/{usuario_id}")
+@router.delete("/{usuario_id}")
 def deletar_usuario(usuario_id: int, session: Session= Depends(get_session)):
     db_usuario = session.get(Usuario, usuario_id)
     if not db_usuario:
@@ -38,7 +38,7 @@ def deletar_usuario(usuario_id: int, session: Session= Depends(get_session)):
     return {"message": "USUÁRIO DELETADO COM SUCESSO"}
 
 # retorna um usuario especifico pelo id
-@router.get("/usuarios/{usuario_id}", response_model= Usuario)
+@router.get("/{usuario_id}", response_model= Usuario)
 def buscar_usuario_por_id(usuario_id: int, session: Session=Depends(get_session)):
     usuario = session.get(Usuario, usuario_id)
     if not usuario:
@@ -46,7 +46,7 @@ def buscar_usuario_por_id(usuario_id: int, session: Session=Depends(get_session)
     return usuario
 
 # edita um usuario especifico pelo id
-@router.put("/usuarios/{usuario_id}", response_model= Usuario)
+@router.put("/{usuario_id}", response_model= Usuario)
 def atualizar_usuario(usuario_id: int, usuario_atualizado: Usuario, session: Session= Depends(get_session)):
     db_usuario = session.get(Usuario, usuario_id)
     if not db_usuario:
