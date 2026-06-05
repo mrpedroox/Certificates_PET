@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import Evento
 
-router = APIRouter(prefix="/usuarios", tags=["Usuários"])
+router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
 '''
             Eventos
@@ -18,7 +18,7 @@ def listar_eventos(session: Session= Depends(get_session)):
 @router.post("/eventos/", response_model= Evento, status_code= status.HTTP_201_CREATED)
 def criar_evento(evento: Evento, session: Session = Depends(get_session)):
     if evento.data_fim < evento.data_inicio:
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO PARA CRIAR EVENTO. DATA DE INICIO NÃO PODE SER DEPOIS DA DATA DE FIM.")
+        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO PARA CRIAR EVENTO. DATA DE INÍCIO NÃO PODE SER DEPOIS DA DATA DE FIM.")
 
     try:
         session.add(evento)

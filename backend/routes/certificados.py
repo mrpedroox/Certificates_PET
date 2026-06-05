@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import Certificado
 
-router = APIRouter(prefix="/usuarios", tags=["Usuários"])
+router = APIRouter(prefix="/certificados", tags=["Certificados"])
 
 '''
             Certificados
