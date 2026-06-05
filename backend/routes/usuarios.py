@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session, select
 from database import get_session
 from models import Usuario
+from schemas import UsuarioSchema
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
@@ -16,7 +17,8 @@ def listar_usuarios(session: Session= Depends(get_session)):
 
 # cria um usuario
 @router.post("/", response_model= Usuario, status_code= status.HTTP_201_CREATED)
-def criar_usuario(usuario: Usuario, session: Session = Depends(get_session)):
+def criar_usuario(usuario_novo: UsuarioSchema, session: Session = Depends(get_session)):
+    usuario = Usuario.model_validate(usuario_novo)
     try:
         session.add(usuario)
         session.commit()
@@ -47,7 +49,7 @@ def buscar_usuario_por_id(usuario_id: int, session: Session=Depends(get_session)
 
 # edita um usuario especifico pelo id
 @router.put("/{usuario_id}", response_model= Usuario)
-def atualizar_usuario(usuario_id: int, usuario_atualizado: Usuario, session: Session= Depends(get_session)):
+def atualizar_usuario(usuario_id: int, usuario_atualizado: UsuarioSchema, session: Session= Depends(get_session)):
     db_usuario = session.get(Usuario, usuario_id)
     if not db_usuario:
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail="USUÁRIO NÃO ENCONTRADO")
