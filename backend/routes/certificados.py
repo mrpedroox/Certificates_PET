@@ -9,13 +9,13 @@ router = APIRouter(prefix="/certificados", tags=["Certificados"])
             Certificados
 '''
 # retorna uma lista com todos os certificados
-@router.get("/certificados/", response_model= list[Certificado])
+@router.get("/", response_model= list[Certificado])
 def listar_certificados(session: Session= Depends(get_session)):
     certificados = session.exec(select(Certificado)).all()
     return certificados
 
 # cria um certificado
-@router.post("/certificados/", response_model= Certificado, status_code= status.HTTP_201_CREATED)
+@router.post("/", response_model= Certificado, status_code= status.HTTP_201_CREATED)
 def criar_certificado(certificado: Certificado, session: Session = Depends(get_session)):
     try:
         session.add(certificado)
@@ -27,7 +27,7 @@ def criar_certificado(certificado: Certificado, session: Session = Depends(get_s
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR CERTIFICADO. VERIFIQUE SE O USUÁRIO E O EVENTO EXISTEM.\n Mais sobre o problema: {str(e)}")
 
 # deleta um certificado pelo id
-@router.delete("/certificados/{certificado_id}")
+@router.delete("/{certificado_id}")
 def deletar_certificado(certificado_id: int, session: Session= Depends(get_session)):
     db_certificado = session.get(Certificado, certificado_id)
     if not db_certificado:
@@ -38,7 +38,7 @@ def deletar_certificado(certificado_id: int, session: Session= Depends(get_sessi
     return {"message": "CERTIFICADO DELETADO COM SUCESSO"}
 
 # retorna um certificado especifico pelo id
-@router.get("/certificados/{certificado_id}", response_model= Certificado)
+@router.get("/{certificado_id}", response_model= Certificado)
 def buscar_certificado_por_id(certificado_id: int, session: Session=Depends(get_session)):
     certificado = session.get(Certificado, certificado_id)
     if not certificado:
@@ -46,7 +46,7 @@ def buscar_certificado_por_id(certificado_id: int, session: Session=Depends(get_
     return certificado
 
 # edita um certificado especifico pelo id
-@router.put("/certificados/{certificado_id}", response_model= Certificado)
+@router.put("/{certificado_id}", response_model= Certificado)
 def atualizar_certificado(certificado_id: int, certificado_atualizado: Certificado, session: Session= Depends(get_session)):
     db_certificado = session.get(Certificado, certificado_id)
     if not db_certificado:
