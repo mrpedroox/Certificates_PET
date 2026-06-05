@@ -5,10 +5,12 @@ from database import engine, get_session
 from contextlib import asynccontextmanager
 from models import Certificado, Evento, Usuario
 from routes import usuarios, eventos, certificados
+from seed import povoa_banco
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
+    povoa_banco()
     yield
 
 app = FastAPI(title="Sistema de Certificados", lifespan=lifespan)
