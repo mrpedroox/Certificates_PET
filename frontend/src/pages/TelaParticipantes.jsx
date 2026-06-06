@@ -6,25 +6,52 @@ import Editar from '../assets/editar.svg';
 import Lixeira from '../assets/lixeira.svg';
 
 function TelaParticipantes() {
+
+    const [participantes, setParticipantes] = useState([]);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [nome, setNome] = useState('');
     const [cpf, setCpf] = useState('');
+    const [EditandoId, setIsEditandoId] = useState(null);
+
+    const AbrirModalCadastroNovo = () =>{
+        setNome('')
+        setCpf('')
+        setIsEditandoId(null)
+        setIsModalOpen(true)
+    }
 
     const HandleSalvar = (e) => {
         e.preventDefault();
-        console.log("Salvando:", nome, cpf);
-        alert("Participante salvo com sucesso!");
+        if(EditandoId){
+
+           setParticipantes(participantes.map(p => 
+                p.id === EditandoId ? { ...p, nome: nome, cpf: cpf } : p
+            ));
+            alert("Participante editado com sucesso!");
+
+        } else {
+            const novoId = participantes.length > 0 ? participantes[participantes.length - 1].id + 1 : 1;
+            const novoParticipante = {id: novoId, nome:nome, cpf:cpf}
+            setParticipantes([...participantes, novoParticipante])
+            alert("Participante salvo com sucesso!");
+        }
         setNome('');
         setCpf('');
         setIsModalOpen(false);
     }
 
-    const HandleEditar = (id) => {
-        alert("Abrindo edição do participante:", id);
+    const HandleEditar = (participante) => {
+        setNome(participante.nome)
+        setCpf(participante.cpf)
+        setIsEditandoId(participante.id)
+        setIsModalOpen(true)
     }
 
     const HandleApagar = (id) => {
+
         if (window.confirm("Tem certeza que deseja apagar esse participante?")) {
+            setParticipantes(participantes.filter(p => p.id !== id)); 
             alert("Apagando participante:", id);
         }
     }
@@ -38,7 +65,7 @@ function TelaParticipantes() {
                 </h2>
                 <Button
                     texto="+ Adicionar Novo Participante"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={AbrirModalCadastroNovo}
                 />
             </div>
 
@@ -53,26 +80,27 @@ function TelaParticipantes() {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Maria Eduarda Ferreira</td>
-                            <td>123.456.789-01</td>
-                            <td className="action-buttons">
-                                {/*ID exemplo*/}
-                                <ActionButton
+                        {participantes.map((participante) => (
+                            <tr key={participante.id}>
+                                <td>{participante.id}</td>
+                                <td>{participante.nome}</td>
+                                <td>{participante.cpf}</td>
+                                <td className="action-buttons">
+                                    <ActionButton
                                     icon={Editar}
                                     tooltip="Editar"
                                     altText="Icone de Editar"
-                                    onClick={() => HandleEditar(1)}
-                                />
-                                <ActionButton
+                                    onClick={() => HandleEditar(participante)}
+                                    />
+                                    <ActionButton
                                     icon={Lixeira}
                                     tooltip="Apagar"
                                     altText="Icone de Apagar"
-                                    onClick={() => HandleApagar(1)}
-                                />
-                            </td>
-                        </tr>
+                                    onClick={() => HandleApagar(participante.id)}
+                                    />
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
@@ -80,7 +108,9 @@ function TelaParticipantes() {
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h3 className="modal-title">+Cadastrar Novo Participante</h3>
+                        <h3 className="modal-title">
+                            {EditandoId ? "Editar Participante" : "+ Cadastrar Novo Participante"}
+                        </h3>
 
                         <form onSubmit={HandleSalvar}>
                             <Input
@@ -91,7 +121,7 @@ function TelaParticipantes() {
                             />
                             <Input
                                 label="CPF"
-                                placeholder="digite seu cpf(000.000.000-00)..."
+                                placeholder="digite seu cpf (000.000.000-00)..."
                                 value={cpf}
                                 onChange={(e) => setCpf(e.target.value)}
                             />
@@ -100,6 +130,11 @@ function TelaParticipantes() {
                                     texto="Salvar"
                                     type="submit"
                                     className="btn-primary"
+                                />
+                                <Button
+                                    texto="Cancelar"
+                                    type="button"
+                                    onClick={()=> setIsModalOpen(false)}
                                 />
                             </div>
                         </form>
