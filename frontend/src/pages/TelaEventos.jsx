@@ -102,7 +102,7 @@ function TelaEventos() {
             })
             .catch(error => {
                 console.error("Erro:", error);
-                alert("Não foi possível salvar o evento. Verifique o console.");
+                alert("Não foi possível salvar o evento.");
             });
         }
     };
