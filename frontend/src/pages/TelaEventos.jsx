@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
@@ -17,6 +17,25 @@ function TelaEventos() {
 
     const[EditandoId, setIsEditandoId] = useState(null);
 
+    const carregarEventos = () => { // Função para carregar os eventos do banco de dados
+        fetch("http://127.0.0.1:8000/eventos/")
+            .then(response => {
+                if (!response.ok) throw new Error("Erro ao buscar eventos");
+                return response.json();
+            })
+            .then(data => {
+                setEventos(data);
+            })
+            .catch(error => {
+                console.error("Erro ao buscar eventos:", error);
+            });
+
+    };
+
+    useEffect(() => { //useEffect usa a função e carrega a lista ao abrir a página
+        carregarEventos();
+    }, []);
+
     const AbrirModalCadastroNovo = () =>{
         setTitulo('')
         setDescricao('')
@@ -26,34 +45,79 @@ function TelaEventos() {
         setIsModalOpen(true)
     }
 
+
+
     const HandleSalvar = (e) => {
         e.preventDefault();
 
-        if(EditandoId){
+        const dadosEvento = {
+            titulo: titulo,
+            texto: descricao, 
+            data_inicio: dataInicio, 
+            data_fim: dataFim
+        };
 
-            setEventos(eventos.map(e => 
-                e.id === EditandoId ? { ...e, titulo: titulo, descricao: descricao, data_inicio: dataInicio, data_fim: dataFim } : e
-            ));
-            alert("Evento editado com sucesso!");
+        if (EditandoId) {
+            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, { // Requisição PUT para editar o evento existente
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(dadosEvento),
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Erro ao editar evento");
+                return response.json();
+            })
+            .then(() => {
+                alert("Evento editado com sucesso!");
+                carregarEventos(); 
+                fecharModal();
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+                alert("Não foi possível editar o evento.");
+            });
 
         } else {
-            const novoId = eventos.length > 0 ? eventos[eventos.length - 1].id + 1 : 1;
-            const novoEvento = {id: novoId, titulo:titulo, descricao:descricao, data_inicio: dataInicio, data_fim: dataFim} 
-            setEventos([...eventos, novoEvento])
-            alert("Evento salvo com sucesso!");
+            fetch("http://127.0.0.1:8000/eventos/", { // Requisição POST para criar um novo evento
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(dadosEvento),
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const dadosErro = await response.json().catch(() => ({}));
+                    console.error("DETALHES DO ERRO DO BACKEND:", dadosErro);
+                    throw new Error(`Erro do servidor: Status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert("Evento salvo com sucesso!");
+                carregarEventos(); 
+                fecharModal();
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+                alert("Não foi possível salvar o evento. Verifique o console.");
+            });
         }
+    };
 
-        alert("Evento salvo com sucesso!");
+    const fecharModal = () => {
         setTitulo('');
         setDescricao('');
         setDataInicio('');
         setDataFim('');
         setIsModalOpen(false);
-    }
+    };
 
     const HandleEditar = (evento) => {
        setTitulo(evento.titulo)
-       setDescricao(evento.descricao)
+       setDescricao(evento.texto)
        setDataInicio(evento.data_inicio)
        setDataFim(evento.data_fim)
        setIsEditandoId(evento.id)
@@ -61,12 +125,22 @@ function TelaEventos() {
 
     }
 
-    const HandleApagar = (id) => {
+    const HandleApagar = (id) => { // Requisição DELETE para deletar um evento
         if (window.confirm("Tem certeza que deseja apagar esse evento?")) {
-           setEventos(eventos.filter(p => p.id !== id));
-           alert("Evento apagado com sucesso!") 
+            fetch(`http://127.0.0.1:8000/eventos/${id}/`, {
+                method: "DELETE",
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Evento apagado com sucesso!");
+                    carregarEventos(); 
+                } else {
+                    alert("Erro ao apagar o evento.");
+                }
+            })
+            .catch(error => console.error("Erro ao apagar:", error));
         }
-    }
+    };
 
     return (
         <div className="main-container">
@@ -98,7 +172,7 @@ function TelaEventos() {
                             <tr key={evento.id}>
                                 <td>{evento.id}</td>
                                 <td>{evento.titulo}</td>
-                                <td>{evento.descricao}</td>
+                                <td>{evento.texto}</td>
                                 <td>{evento.data_inicio}</td>
                                 <td>{evento.data_fim}</td>
                                 <td className="action-buttons">
