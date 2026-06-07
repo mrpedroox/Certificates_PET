@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
@@ -8,11 +8,25 @@ import Lixeira from '../assets/lixeira.svg';
 function TelaParticipantes() {
 
     const [participantes, setParticipantes] = useState([]);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [nome, setNome] = useState('');
     const [cpf, setCpf] = useState('');
     const [EditandoId, setIsEditandoId] = useState(null);
+
+    const carregarParticipantes = () => {
+        fetch("http://127.0.0.1:8000/usuarios/")
+            .then(response => response.json())
+            .then(data => {
+                setParticipantes(data);
+            })
+            .catch(error => {
+                console.error("Erro ao buscar participantes:", error);
+            });
+    };
+
+    useEffect(() => {
+        carregarParticipantes();
+    }, []);
 
     const AbrirModalCadastroNovo = () =>{
         setNome('')
@@ -21,21 +35,56 @@ function TelaParticipantes() {
         setIsModalOpen(true)
     }
 
-    const HandleSalvar = (e) => {
+    const HandleSalvar = async (e) => {
         e.preventDefault();
-        if(EditandoId){
 
-           setParticipantes(participantes.map(p => 
-                p.id === EditandoId ? { ...p, nome: nome, cpf: cpf } : p
-            ));
-            alert("Participante editado com sucesso!");
+        if (EditandoId) {
+            // Requisição PUT para editar
+            fetch(`http://127.0.0.1:8000/usuarios/${EditandoId}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nome: nome,
+                    cpf: cpf,
+                }),
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Erro ao editar");
+                return response.json();
+            })
+            .then(data => {
+                alert("Participante editado com sucesso!");
+                carregarParticipantes(); // Atualiza a tabela com os dados do banco com a função definida inicialmente
+            })
+            .catch(error => console.error("Erro:", error));
 
-        } else {
-            const novoId = participantes.length > 0 ? participantes[participantes.length - 1].id + 1 : 1;
-            const novoParticipante = {id: novoId, nome:nome, cpf:cpf}
-            setParticipantes([...participantes, novoParticipante])
-            alert("Participante salvo com sucesso!");
+        } 
+        else {
+            // Requisição POST para criar
+            fetch("http://127.0.0.1:8000/usuarios/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nome: nome,
+                    cpf: cpf,
+                }),
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Erro ao salvar");
+                return response.json();
+            })
+            .then(data => {
+                alert("Participante salvo com sucesso!");
+                carregarParticipantes(); // Atualiza a tabela
+            })
+            .catch(error => console.error("Erro:", error));
         }
+
+        // Limpa os campos e fecha o modal
         setNome('');
         setCpf('');
         setIsModalOpen(false);
@@ -49,10 +98,20 @@ function TelaParticipantes() {
     }
 
     const HandleApagar = (id) => {
-
         if (window.confirm("Tem certeza que deseja apagar esse participante?")) {
-            setParticipantes(participantes.filter(p => p.id !== id)); 
-            alert("Participante apagado com sucesso!");
+            // Requisição DELETE para apagar
+            fetch(`http://127.0.0.1:8000/usuarios/${id}/`, {
+                method: "DELETE",
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Participante apagado com sucesso!");
+                    carregarParticipantes(); // Atualiza a tabela
+                } else {
+                    alert("Erro ao apagar o participante.");
+                }
+            })
+            .catch(error => console.error("Erro:", error));
         }
     }
 
