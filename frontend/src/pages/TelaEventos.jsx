@@ -20,8 +20,8 @@ function TelaEventos() {
     const AbrirModalCadastroNovo = () =>{
         setTitulo('')
         setDescricao('')
-        setDataInicio('');
-        setDataFim('');
+        setDataInicio('')
+        setDataFim('')
         setIsEditandoId(null)
         setIsModalOpen(true)
     }
@@ -30,23 +30,20 @@ function TelaEventos() {
         e.preventDefault();
 
         if(EditandoId){
-            setEventos(eventos.map(ev => 
-                ev.id === EditandoId ? { ...ev, titulo: titulo, descricao: descricao, data_inicio: dataInicio, data_fim: dataFim } : ev
+
+            setEventos(eventos.map(e => 
+                e.id === EditandoId ? { ...e, titulo: titulo, descricao: descricao, data_inicio: dataInicio, data_fim: dataFim } : e
             ));
             alert("Evento editado com sucesso!");
+
         } else {
             const novoId = eventos.length > 0 ? eventos[eventos.length - 1].id + 1 : 1;
-            const novoEvento = {
-                id: novoId, 
-                titulo: titulo, 
-                descricao: descricao, 
-                data_inicio: dataInicio, 
-                data_fim: dataFim
-            };
-            setEventos([...eventos, novoEvento]);
+            const novoEvento = {id: novoId, titulo:titulo, descricao:descricao, data_inicio: dataInicio, data_fim: dataFim} 
+            setEventos([...eventos, novoEvento])
             alert("Evento salvo com sucesso!");
         }
 
+        alert("Evento salvo com sucesso!");
         setTitulo('');
         setDescricao('');
         setDataInicio('');
@@ -89,10 +86,10 @@ function TelaEventos() {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Titulo do Evento</th>
+                            <th>Título do Evento</th>
                             <th>Descrição</th>
-                            <th>Início</th>
-                            <th>Fim</th>
+                            <th>Data de Início</th>
+                            <th>Data de Fim</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -145,6 +142,28 @@ function TelaEventos() {
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
                             />
+                            <div className="form-row">
+                                <div className="input-container">
+                                    <label className="input-label">Data de Início</label>
+                                    <input 
+                                        type="date" 
+                                        className="input-field date-field" 
+                                        value={dataInicio} 
+                                        onChange={(e) => setDataInicio(e.target.value)} 
+                                        required
+                                    />
+                                </div>
+                                <div className="input-container">
+                                    <label className="input-label">Data de Fim</label>
+                                    <input 
+                                        type="date" 
+                                        className="input-field date-field" 
+                                        value={dataFim} 
+                                        onChange={(e) => setDataFim(e.target.value)} 
+                                        required
+                                    />
+                                </div>
+                            </div>
                             <div className="modal-actions">
                                 <Button
                                     texto="Salvar"

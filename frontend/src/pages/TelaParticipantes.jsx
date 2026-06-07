@@ -52,7 +52,7 @@ function TelaParticipantes() {
 
         if (window.confirm("Tem certeza que deseja apagar esse participante?")) {
             setParticipantes(participantes.filter(p => p.id !== id)); 
-            alert("Apagando participante:", id);
+            alert("Participante apagado com sucesso!");
         }
     }
 

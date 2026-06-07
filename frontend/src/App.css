@@ -73,7 +73,7 @@
 }
 
 .side-bar-list li.active {
-  color: #D92323; 
+  color: #FFFFFF;
   font-weight: bold;
 }
 
@@ -215,4 +215,19 @@
 
 .modal-actions button[type="button"]:hover {
   background-color: #d1d0d4;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-row .input-container {
+  flex: 1;
+}
+
+.date-field::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
 }
