@@ -50,7 +50,6 @@ function TelaEventos() {
     const HandleSalvar = (e) => {
         e.preventDefault();
 
-        // ALTERAÇÃO: Mapeando a state 'descricao' para a chave 'texto' exigida pelo banco
         const dadosEvento = {
             titulo: titulo,
             texto: descricao, 
@@ -59,8 +58,7 @@ function TelaEventos() {
         };
 
         if (EditandoId) {
-            // Requisição PUT para editar o evento existente
-            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, {
+            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, { // Requisição PUT para editar o evento existente
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -82,8 +80,7 @@ function TelaEventos() {
             });
 
         } else {
-            // Requisição POST para criar um novo evento
-            fetch("http://127.0.0.1:8000/eventos/", {
+            fetch("http://127.0.0.1:8000/eventos/", { // Requisição POST para criar um novo evento
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -128,7 +125,7 @@ function TelaEventos() {
 
     }
 
-    const HandleApagar = (id) => {
+    const HandleApagar = (id) => { // Requisição DELETE para deletar um evento
         if (window.confirm("Tem certeza que deseja apagar esse evento?")) {
             fetch(`http://127.0.0.1:8000/eventos/${id}/`, {
                 method: "DELETE",
