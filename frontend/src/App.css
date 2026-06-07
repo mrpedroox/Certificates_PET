@@ -231,3 +231,39 @@
   cursor: pointer;
   opacity: 0.6;
 }
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+    box-sizing: border-box; 
+}
+
+
+.custom-select:focus {
+    border-color: #FA0000; 
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+.custom-select option[value=""][disabled] {
+    color: #888;
+}
