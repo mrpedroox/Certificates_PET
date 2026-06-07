@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from database import get_session
 from models import Evento
 from schemas import EventoSchema
@@ -39,6 +39,16 @@ def deletar_evento(evento_id: int, session: Session= Depends(get_session)):
     session.delete(db_evento)
     session.commit()
     return {"message": "EVENTO DELETADO COM SUCESSO"}
+
+# retorna uma lista com todos os eventos com um titulo especifico
+@router.get("/buscar")
+def buscar_evento_por_titulo(nome: str, session: Session = Depends(get_session)):
+    eventos = session.exec( select(Evento).where(col(Evento.titulo).ilike(f"%{nome}%")) ).all()
+    
+    if not eventos:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NENHUM EVENTO ENCONTRADO COM ESTE TITULO")
+    
+    return eventos
 
 # retorna um evento especifico pelo id
 @router.get("/{evento_id}", response_model= Evento)

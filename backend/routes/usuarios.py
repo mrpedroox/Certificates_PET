@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col
 from database import get_session
 from models import Usuario
 from schemas import UsuarioSchema
@@ -38,6 +38,16 @@ def deletar_usuario(usuario_id: int, session: Session= Depends(get_session)):
     session.delete(db_usuario)
     session.commit()
     return {"message": "USUÁRIO DELETADO COM SUCESSO"}
+
+# retorna uma lista com todos os usuarios com um nome especifico
+@router.get("/buscar")
+def buscar_usuario_por_nome(nome: str, session: Session = Depends(get_session)):
+    usuarios = session.exec( select(Usuario).where(col(Usuario.nome).ilike(f"%{nome}%")) ).all()
+    
+    if not usuarios:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="NENHUM USUÁRIO ENCONTRADO COM ESTE NOME")
+    
+    return usuarios
 
 # retorna um usuario especifico pelo id
 @router.get("/{usuario_id}", response_model= Usuario)
