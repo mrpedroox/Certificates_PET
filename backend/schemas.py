@@ -24,7 +24,7 @@ class UsuarioSchema(SQLModel):
         if len(nome) == 0:
             raise ValueError("ERRO NOS DADOS DO USUÁRIO. O NOME NÃO PODE SER VAZIO.")
         
-        return nome
+        return nome_novo
 
 class EventoSchema(SQLModel):
     texto: str
@@ -48,7 +48,7 @@ class EventoSchema(SQLModel):
         if len(nome) == 0:
             raise ValueError("ERRO NOS DADOS DO EVENTO. O TEXTO NÃO PODE SER VAZIO.")
         
-        return nome
+        return nome_novo
 
     @field_validator("titulo")
     @classmethod
@@ -58,7 +58,7 @@ class EventoSchema(SQLModel):
         if len(nome) == 0:
             raise ValueError("ERRO NOS DADOS DO EVENTO. O TÍTULO NÃO PODE SER VAZIO.")
         
-        return nome
+        return nome_novo
 
 class CertificadoSchema(SQLModel):
     carga_horaria: int
