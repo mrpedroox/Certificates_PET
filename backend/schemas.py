@@ -16,6 +16,16 @@ class UsuarioSchema(SQLModel):
         
         return cpf
 
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, nome_novo: str):
+        nome = nome_novo.replace(" ", "")
+        
+        if len(nome) == 0:
+            raise ValueError("ERRO NOS DADOS DO USUÁRIO. O NOME NÃO PODE SER VAZIO.")
+        
+        return nome
+
 class EventoSchema(SQLModel):
     texto: str
     titulo: str
@@ -29,6 +39,26 @@ class EventoSchema(SQLModel):
             raise ValueError("ERRO NOS DADOS DO EVENTO. A DATA DE FIM NÃO PODE SER ANTERIOR A DATA DE INÍCIO.")
 
         return data_fim
+
+    @field_validator("texto")
+    @classmethod
+    def validar_texto(cls, nome_novo: str):
+        nome = nome_novo.replace(" ", "")
+        
+        if len(nome) == 0:
+            raise ValueError("ERRO NOS DADOS DO EVENTO. O TEXTO NÃO PODE SER VAZIO.")
+        
+        return nome
+
+    @field_validator("titulo")
+    @classmethod
+    def validar_titulo(cls, nome_novo: str):
+        nome = nome_novo.replace(" ", "")
+        
+        if len(nome) == 0:
+            raise ValueError("ERRO NOS DADOS DO EVENTO. O TÍTULO NÃO PODE SER VAZIO.")
+        
+        return nome
 
 class CertificadoSchema(SQLModel):
     carga_horaria: int
