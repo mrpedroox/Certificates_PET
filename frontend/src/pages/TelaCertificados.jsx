@@ -5,153 +5,141 @@ import Input from '../components/Input';
 import Editar from '../assets/editar.svg';
 import Lixeira from '../assets/lixeira.svg';
 
-function TelaEventos() {
+function TelaCertificados() {
 
-    const [eventos, setEventos] = useState([]);
-    
+    const [certificados, setCertificados] = useState([]);
+    const [listaParticipantes, setListaParticipantes] = useState([]);
+    const [listaEventos, setListaEventos] = useState([]);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [titulo, setTitulo] = useState('');
-    const [descricao, setDescricao] = useState('');
-    const [dataInicio, setDataInicio] = useState('');
-    const [dataFim, setDataFim] = useState('');
+    
+    // Onde os IDs e carga horária dos formulários são guardadas
+    const [participanteId, setParticipanteId] = useState('');
+    const [eventoId, setEventoId] = useState('');
+    const [cargaHoraria, setCargaHoraria] = useState('');
+    
+    const [EditandoId, setIsEditandoId] = useState(null);
 
-    const[EditandoId, setIsEditandoId] = useState(null);
+    const carregarDados = () => {
+        //Faz a busca de certificados no back
+        fetch("http://127.0.0.1:8000/certificados/")
+            .then(res => res.json())
+            .then(data => setCertificados(data))
+            .catch(err => console.error("Erro ao buscar certificados:", err));
 
-    const carregarEventos = () => { // Função para carregar os eventos do banco de dados
+        // Faz a busca de usuários no back
+        fetch("http://127.0.0.1:8000/usuarios/")
+            .then(res => res.json())
+            .then(data => setListaParticipantes(data))
+            .catch(err => console.error("Erro ao buscar usuários:", err));
+
+        // Faz a busca de eventos no back
         fetch("http://127.0.0.1:8000/eventos/")
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao buscar eventos");
-                return response.json();
-            })
-            .then(data => {
-                setEventos(data);
-            })
-            .catch(error => {
-                console.error("Erro ao buscar eventos:", error);
-            });
-
+            .then(res => res.json())
+            .then(data => setListaEventos(data))
+            .catch(err => console.error("Erro ao buscar eventos:", err));
     };
 
-    useEffect(() => { //useEffect usa a função e carrega a lista ao abrir a página
-        carregarEventos();
+    useEffect(() => { //Carrega as informações assim que a tela abre
+        carregarDados();
     }, []);
 
-    const AbrirModalCadastroNovo = () =>{
-        setTitulo('')
-        setDescricao('')
-        setDataInicio('')
-        setDataFim('')
-        setIsEditandoId(null)
-        setIsModalOpen(true)
+    const AbrirModalNovaEmissao = () => {
+        setParticipanteId('');
+        setEventoId('');
+        setCargaHoraria('');
+        setIsEditandoId(null);
+        setIsModalOpen(true);
     }
 
+    const HandleSalvar = (e) => { //Função para salvar ou editar
+        e.preventDefault(); 
 
-
-    const HandleSalvar = (e) => {
-        e.preventDefault();
-
-        const dadosEvento = {
-            titulo: titulo,
-            texto: descricao, 
-            data_inicio: dataInicio, 
-            data_fim: dataFim
+        // Montagem do objeto com os dados necessários
+        const dadosCertificado = {
+            id_usuario: parseInt(participanteId),
+            id_evento: parseInt(eventoId),
+            carga_horaria: parseInt(cargaHoraria)
         };
 
         if (EditandoId) {
-            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, { // Requisição PUT para editar o evento existente
+            // PUT para atualizar certificados
+            fetch(`http://127.0.0.1:8000/certificados/${EditandoId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(dadosEvento),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao editar evento");
-                return response.json();
-            })
-            .then(() => {
-                alert("Evento editado com sucesso!");
-                carregarEventos(); 
-                fecharModal();
-            })
-            .catch(error => {
-                console.error("Erro:", error);
-                alert("Não foi possível editar o evento.");
-            });
-
-        } else {
-            fetch("http://127.0.0.1:8000/eventos/", { // Requisição POST para criar um novo evento
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(dadosEvento),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosCertificado)
             })
             .then(async response => {
-                if (!response.ok) {
-                    const dadosErro = await response.json().catch(() => ({}));
-                    console.error("DETALHES DO ERRO DO BACKEND:", dadosErro);
-                    throw new Error(`Erro do servidor: Status ${response.status}`);
-                }
-                return response.json();
+                if (!response.ok) throw new Error(await response.text());
+                alert("Certificado editado com sucesso!");
+                carregarDados(); // Atualiza a tabela
+                setIsModalOpen(false);
             })
-            .then(() => {
-                alert("Evento salvo com sucesso!");
-                carregarEventos(); 
-                fecharModal();
+            .catch(err => alert("Erro ao editar: " + err.message));
+
+        } 
+        else {
+            // POST para adicionar certificados
+            fetch("http://127.0.0.1:8000/certificados/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosCertificado)
             })
-            .catch(error => {
-                console.error("Erro:", error);
-                alert("Não foi possível salvar o evento.");
-            });
+            .then(async response => {
+                if (!response.ok) throw new Error(await response.text());
+                alert("Certificado emitido com sucesso!");
+                carregarDados(); // Atualiza a tabela
+                setIsModalOpen(false);
+            })
+            .catch(err => alert("Erro ao emitir: " + err.message));
         }
     };
 
-    const fecharModal = () => {
-        setTitulo('');
-        setDescricao('');
-        setDataInicio('');
-        setDataFim('');
-        setIsModalOpen(false);
+    const HandleApagar = (id) => {
+        if (window.confirm("Tem certeza que deseja apagar esse certificado?")) {
+           fetch(`http://127.0.0.1:8000/certificados/${id}`, {
+               method: "DELETE"
+           })
+           .then(response => {
+               if (response.ok) {
+                   alert("Certificado apagado com sucesso!");
+                   carregarDados(); // Atualiza a tela
+               } else {
+                   alert("Erro ao apagar certificado.");
+               }
+           })
+           .catch(err => console.error("Erro no delete:", err));
+        }
     };
 
-    const HandleEditar = (evento) => {
-       setTitulo(evento.titulo)
-       setDescricao(evento.texto)
-       setDataInicio(evento.data_inicio)
-       setDataFim(evento.data_fim)
-       setIsEditandoId(evento.id)
-       setIsModalOpen(true)
-
+    const HandleEditar = (certificado) => {
+        setParticipanteId(certificado.participanteId || '');
+        setEventoId(certificado.eventoId || '');
+        setCargaHoraria(certificado.carga_horaria || '');
+        setIsEditandoId(certificado.id || '');
+        setIsModalOpen(true);
     }
 
-    const HandleApagar = (id) => { // Requisição DELETE para deletar um evento
-        if (window.confirm("Tem certeza que deseja apagar esse evento?")) {
-            fetch(`http://127.0.0.1:8000/eventos/${id}/`, {
-                method: "DELETE",
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Evento apagado com sucesso!");
-                    carregarEventos(); 
-                } else {
-                    alert("Erro ao apagar o evento.");
-                }
-            })
-            .catch(error => console.error("Erro ao apagar:", error));
-        }
+    const getNomeParticipante = (id) => {
+        const participante = listaParticipantes.find(p => p.id == id);
+        return participante ? participante.nome : `ID ${id} (Excluído/Não encontrado)`;
     };
+
+    const getTituloEvento = (id) => {
+        const evento = listaEventos.find(ev => ev.id == id);
+        return evento ? evento.titulo : `ID ${id} (Excluído/Não encontrado)`;
+    };
+
 
     return (
         <div className="main-container">
-
             <div className="page-header">
                 <h2 className="page-title">
-                    Evento &gt; Controle de Atividades
+                    Certificados &gt; Emissão e Histórico
                 </h2>
-                <Button
-                    texto="+ Adicionar Novo Evento"
-                    onClick={AbrirModalCadastroNovo}
+                <Button 
+                    texto="+ Emitir Novo Certificado" 
+                    onClick={AbrirModalNovaEmissao} 
                 />
             </div>
 
@@ -159,38 +147,28 @@ function TelaEventos() {
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Título do Evento</th>
-                            <th>Descrição</th>
-                            <th>Data de Início</th>
-                            <th>Data de Fim</th>
+                            <th>Participante</th>
+                            <th>Evento</th>
+                            <th>Carga Horária</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {eventos.map((evento) => (
-                            <tr key={evento.id}>
-                                <td>{evento.id}</td>
-                                <td>{evento.titulo}</td>
-                                <td>{evento.texto}</td>
-                                <td>{evento.data_inicio}</td>
-                                <td>{evento.data_fim}</td>
+                        {certificados.map((c) => (
+                            <tr key={c.id}>
+                                <td>{getNomeParticipante(c.id_usuario)}</td>
+                                <td>{getTituloEvento(c.id_evento)}</td>
+                                <td>{c.carga_horaria}h</td>
                                 <td className="action-buttons">
-                                    <ActionButton
+                                    <ActionButton 
                                     icon={Editar}
-                                    tooltip="Editar"
-                                    altText="Icone de Editar"
-                                    onClick={() => HandleEditar(evento)}
-                                    />
+                                    onClick={() => {HandleEditar(c)}} />
                                     <ActionButton
-                                    icon={Lixeira}
-                                    tooltip="Apagar"
-                                    altText="Icone de Apagar"
-                                    onClick={() => HandleApagar(evento.id)}
-                                    />
+                                    icon={Lixeira} 
+                                    onClick={() => {HandleApagar(c.id)}} />
                                 </td>
                             </tr>
-                        ))}      
+                        ))}
                     </tbody>
                 </table>
             </div>
@@ -198,56 +176,54 @@ function TelaEventos() {
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-
-                        <h3 className="modal-title">{
-                        EditandoId ? "Editar Evento" : "+ Cadastrar Novo Evento"}
-                        </h3>
-
+                        <h3 className="modal-title">
+                            {EditandoId ? 'Editar Certificado' : 'Emitir Novo Certificado'}</h3>
                         <form onSubmit={HandleSalvar}>
-                            <Input
-                                label="Título do Evento"
-                                placeholder="digite o título do evento..."
-                                value={titulo}
-                                onChange={(e) => setTitulo(e.target.value)}
-                            />
-                            <Input
-                                label="Descrição/Texto explicativo"
-                                placeholder="digite a descrição do evento..."
-                                value={descricao}
-                                onChange={(e) => setDescricao(e.target.value)}
-                            />
-                            <div className="form-row">
-                                <div className="input-container">
-                                    <label className="input-label">Data de Início</label>
-                                    <input 
-                                        type="date" 
-                                        className="input-field date-field" 
-                                        value={dataInicio} 
-                                        onChange={(e) => setDataInicio(e.target.value)} 
-                                        required
-                                    />
-                                </div>
-                                <div className="input-container">
-                                    <label className="input-label">Data de Fim</label>
-                                    <input 
-                                        type="date" 
-                                        className="input-field date-field" 
-                                        value={dataFim} 
-                                        onChange={(e) => setDataFim(e.target.value)} 
-                                        required
-                                    />
-                                </div>
+                            <div className="input-group">
+                                <label>Participante</label>
+                                <select 
+                                    className="custom-select"
+                                    value={participanteId} 
+                                    onChange={(e) => setParticipanteId(e.target.value)}
+                                    required
+                                >
+                                    <option value="" disabled>Selecione um participante</option>
+                                    {listaParticipantes.map(p => (
+                                        <option key={p.id} value={p.id}>{p.nome}</option>
+                                    ))}
+                                </select>
                             </div>
+                            <div className="input-group">
+                                <label>Evento</label>
+                                <select 
+                                    className="custom-select"
+                                    value={eventoId} 
+                                    onChange={(e) => setEventoId(e.target.value)}
+                                    required
+                                >
+                                    <option value="" disabled>Selecione um evento</option>
+                                    {listaEventos.map(ev => (
+                                        <option key={ev.id} value={ev.id}>{ev.titulo}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Input 
+                                label="Carga Horária" 
+                                value={cargaHoraria} 
+                                onChange={(e) => setCargaHoraria(e.target.value)} 
+                                type="number" 
+                            />
+
                             <div className="modal-actions">
-                                <Button
-                                    texto="Salvar"
-                                    type="submit"
-                                    className="btn-primary"
+                                <Button 
+                                    texto="Salvar" 
+                                    type="submit" 
+                                    className="btn-primary" 
                                 />
-                                <Button
-                                    texto="Cancelar"
-                                    type="button"
-                                    onClick={()=> setIsModalOpen(false)}
+                                <Button 
+                                    texto="Cancelar" 
+                                    type="button" 
+                                    onClick={() => setIsModalOpen(false)} 
                                 />
                             </div>
                         </form>
@@ -258,4 +234,4 @@ function TelaEventos() {
     )
 }
 
-export default TelaEventos
+export default TelaCertificados;

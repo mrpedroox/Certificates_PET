@@ -58,8 +58,10 @@ function TelaParticipantes() {
                 alert("Participante editado com sucesso!");
                 carregarParticipantes(); // Atualiza a tabela com os dados do banco com a função definida inicialmente
             })
-            .catch(error => console.error("Erro:", error));
+            .catch(error => {
+              console.error("Erro:", error);
             alert("Não foi possível editar o participante.");
+            });
 
         } 
         else {
@@ -82,8 +84,10 @@ function TelaParticipantes() {
                 alert("Participante salvo com sucesso!");
                 carregarParticipantes(); // Atualiza a tabela
             })
-            .catch(error => console.error("Erro:", error));
-            alert("Não foi possível salvar o participante.");
+            .catch(error => {
+              console.error("Erro:", error);
+              alert("Não foi possível salvar o participante.");
+            });
         }
 
         // Limpa os campos e fecha o modal
