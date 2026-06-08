@@ -82,6 +82,10 @@
   padding: 24px;
 }
 
+.page-title{
+  color: #333;
+}
+
 .action-icon-img {
   width: 24px;
   height: 24px;
