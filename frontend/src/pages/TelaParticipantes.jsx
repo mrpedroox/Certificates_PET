@@ -38,62 +38,35 @@ function TelaParticipantes() {
     const HandleSalvar = async (e) => {
         e.preventDefault();
 
-        if (EditandoId) {
-            // Requisição PUT para editar
-            fetch(`http://127.0.0.1:8000/usuarios/${EditandoId}/`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    nome: nome,
-                    cpf: cpf,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao editar");
-                return response.json();
-            })
-            .then(data => {
-                alert("Participante editado com sucesso!");
-                carregarParticipantes(); // Atualiza a tabela com os dados do banco com a função definida inicialmente
-            })
-            .catch(error => {
-              console.error("Erro:", error);
-            alert("Não foi possível editar o participante.");
+        const url = EditandoId
+            ? `http://127.0.0.1:8000/usuarios/${EditandoId}/`
+            : "http://127.0.0.1:8000/usuarios/";
+        const method = EditandoId ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, cpf }),
             });
 
-        } 
-        else {
-            // Requisição POST para criar
-            fetch("http://127.0.0.1:8000/usuarios/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    nome: nome,
-                    cpf: cpf,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao salvar");
-                return response.json();
-            })
-            .then(data => {
-                alert("Participante salvo com sucesso!");
-                carregarParticipantes(); // Atualiza a tabela
-            })
-            .catch(error => {
-              console.error("Erro:", error);
-              alert("Não foi possível salvar o participante.");
-            });
+            if (!response.ok) {
+                const erro = await response.json().catch(() => ({}));
+                throw new Error(erro.detail || "Não foi possível salvar o participante.");
+            }
+
+            alert(EditandoId
+                ? "Participante editado com sucesso!"
+                : "Participante salvo com sucesso!");
+            carregarParticipantes();
+            setNome('');
+            setCpf('');
+            setIsEditandoId(null);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Erro ao salvar participante:", error);
+            alert(error.message);
         }
-
-        // Limpa os campos e fecha o modal
-        setNome('');
-        setCpf('');
-        setIsModalOpen(false);
     }
 
     const HandleEditar = (participante) => {
