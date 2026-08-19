@@ -113,10 +113,10 @@ function TelaCertificados() {
     };
 
     const HandleEditar = (certificado) => {
-        setParticipanteId(certificado.participanteId || '');
-        setEventoId(certificado.eventoId || '');
-        setCargaHoraria(certificado.carga_horaria || '');
-        setIsEditandoId(certificado.id || '');
+        setParticipanteId(String(certificado.id_usuario));
+        setEventoId(String(certificado.id_evento));
+        setCargaHoraria(String(certificado.carga_horaria));
+        setIsEditandoId(certificado.id);
         setIsModalOpen(true);
     }
 
