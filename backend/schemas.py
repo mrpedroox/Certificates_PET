@@ -12,7 +12,7 @@ class UsuarioSchema(SQLModel):
         cpf = cpf_novo.replace(".", "").replace("-", "")
         
         if not cpf.isdigit() or len(cpf) != 11:
-            raise ValueError("ERRO NOS DADOS DO USUÁRIO. O CPF DEVE CONTER EXATAMENTE 11 NÚMEROS.")
+            raise ValueError("CPF inválido. Informe exatamente 11 números.")
         
         return cpf
 

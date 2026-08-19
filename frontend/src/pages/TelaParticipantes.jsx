@@ -4,6 +4,7 @@ import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
 import Editar from '../assets/editar.svg';
 import Lixeira from '../assets/lixeira.svg';
+import { formatarErroApi } from '../utils/apiError';
 
 function TelaParticipantes() {
 
@@ -52,7 +53,10 @@ function TelaParticipantes() {
 
             if (!response.ok) {
                 const erro = await response.json().catch(() => ({}));
-                throw new Error(erro.detail || "Não foi possível salvar o participante.");
+                throw new Error(formatarErroApi(
+                    erro,
+                    "Não foi possível salvar o participante.",
+                ));
             }
 
             alert(EditandoId !== null
