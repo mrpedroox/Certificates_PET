@@ -1,4 +1,12 @@
-function Input({ label, placeholder, value, onChange, type = "text" }) {
+function Input({
+  label,
+  placeholder,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  min,
+}) {
   
     return (
     <div className="input-container">
@@ -9,6 +17,8 @@ function Input({ label, placeholder, value, onChange, type = "text" }) {
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        required={required}
+        min={min}
       />
     </div>
   );

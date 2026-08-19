@@ -57,7 +57,7 @@ function TelaEventos() {
             data_fim: dataFim
         };
 
-        if (EditandoId) {
+        if (EditandoId !== null) {
             fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, { // Requisição PUT para editar o evento existente
                 method: "PUT",
                 headers: {
@@ -209,12 +209,14 @@ function TelaEventos() {
                                 placeholder="digite o título do evento..."
                                 value={titulo}
                                 onChange={(e) => setTitulo(e.target.value)}
+                                required
                             />
                             <Input
                                 label="Descrição/Texto explicativo"
                                 placeholder="digite a descrição do evento..."
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
+                                required
                             />
                             <div className="form-row">
                                 <div className="input-container">

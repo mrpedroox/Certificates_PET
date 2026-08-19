@@ -38,10 +38,10 @@ function TelaParticipantes() {
     const HandleSalvar = async (e) => {
         e.preventDefault();
 
-        const url = EditandoId
+        const url = EditandoId !== null
             ? `http://127.0.0.1:8000/usuarios/${EditandoId}/`
             : "http://127.0.0.1:8000/usuarios/";
-        const method = EditandoId ? "PUT" : "POST";
+        const method = EditandoId !== null ? "PUT" : "POST";
 
         try {
             const response = await fetch(url, {
@@ -55,7 +55,7 @@ function TelaParticipantes() {
                 throw new Error(erro.detail || "Não foi possível salvar o participante.");
             }
 
-            alert(EditandoId
+            alert(EditandoId !== null
                 ? "Participante editado com sucesso!"
                 : "Participante salvo com sucesso!");
             carregarParticipantes();
@@ -156,12 +156,14 @@ function TelaParticipantes() {
                                 placeholder="digite seu nome completo..."
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
+                                required
                             />
                             <Input
                                 label="CPF"
                                 placeholder="digite seu cpf (000.000.000-00)..."
                                 value={cpf}
                                 onChange={(e) => setCpf(e.target.value)}
+                                required
                             />
                             <div className="modal-actions">
                                 <Button
