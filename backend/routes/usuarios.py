@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session, select, col
 from database import get_session
-from models import Usuario
+from models import Certificado, Usuario
 from schemas import UsuarioSchema
 from routes.database_errors import commit_or_raise
 
@@ -32,12 +32,21 @@ def deletar_usuario(usuario_id: int, session: Session= Depends(get_session)):
     if not db_usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "USUÁRIO NÃO ENCONTRADO")
     
+    certificados = session.exec(
+        select(Certificado).where(Certificado.id_usuario == usuario_id)
+    ).all()
+    for certificado in certificados:
+        session.delete(certificado)
+
     session.delete(db_usuario)
     commit_or_raise(
         session,
-        "NÃO É POSSÍVEL EXCLUIR UM USUÁRIO QUE POSSUI CERTIFICADOS",
+        "NÃO FOI POSSÍVEL EXCLUIR O USUÁRIO",
     )
-    return {"message": "USUÁRIO DELETADO COM SUCESSO"}
+    return {
+        "message": "USUÁRIO DELETADO COM SUCESSO",
+        "certificados_removidos": len(certificados),
+    }
 
 # retorna uma lista com todos os usuarios com um nome especifico
 @router.get("/buscar")

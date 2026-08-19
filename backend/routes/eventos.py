@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session, select, col
 from database import get_session
-from models import Evento
+from models import Certificado, Evento
 from schemas import EventoSchema
 from routes.database_errors import commit_or_raise
 
@@ -33,12 +33,21 @@ def deletar_evento(evento_id: int, session: Session= Depends(get_session)):
     if not db_evento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "EVENTO NÃO ENCONTRADO")
     
+    certificados = session.exec(
+        select(Certificado).where(Certificado.id_evento == evento_id)
+    ).all()
+    for certificado in certificados:
+        session.delete(certificado)
+
     session.delete(db_evento)
     commit_or_raise(
         session,
-        "NÃO É POSSÍVEL EXCLUIR UM EVENTO QUE POSSUI CERTIFICADOS",
+        "NÃO FOI POSSÍVEL EXCLUIR O EVENTO",
     )
-    return {"message": "EVENTO DELETADO COM SUCESSO"}
+    return {
+        "message": "EVENTO DELETADO COM SUCESSO",
+        "certificados_removidos": len(certificados),
+    }
 
 # retorna uma lista com todos os eventos com um titulo especifico
 @router.get("/buscar")

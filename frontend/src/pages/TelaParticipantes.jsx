@@ -40,7 +40,7 @@ function TelaParticipantes() {
         e.preventDefault();
 
         const url = EditandoId !== null
-            ? `http://127.0.0.1:8000/usuarios/${EditandoId}/`
+            ? `http://127.0.0.1:8000/usuarios/${EditandoId}`
             : "http://127.0.0.1:8000/usuarios/";
         const method = EditandoId !== null ? "PUT" : "POST";
 
@@ -80,21 +80,31 @@ function TelaParticipantes() {
         setIsModalOpen(true)
     }
 
-    const HandleApagar = (id) => {
-        if (window.confirm("Tem certeza que deseja apagar esse participante?")) {
-            // Requisição DELETE para apagar
-            fetch(`http://127.0.0.1:8000/usuarios/${id}/`, {
+    const HandleApagar = async (id) => {
+        const confirmou = window.confirm(
+            "Tem certeza que deseja apagar este participante? " +
+            "Todos os certificados associados também serão apagados permanentemente."
+        );
+        if (!confirmou) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/usuarios/${id}`, {
                 method: "DELETE",
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Participante apagado com sucesso!");
-                    carregarParticipantes(); // Atualiza a tabela
-                } else {
-                    alert("Erro ao apagar o participante.");
-                }
-            })
-            .catch(error => console.error("Erro:", error));
+            });
+            const dados = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(formatarErroApi(
+                    dados,
+                    "Não foi possível apagar o participante.",
+                ));
+            }
+
+            alert("Participante e certificados associados apagados com sucesso!");
+            carregarParticipantes();
+        } catch (error) {
+            console.error("Erro ao apagar participante:", error);
+            alert(error.message);
         }
     }
 
