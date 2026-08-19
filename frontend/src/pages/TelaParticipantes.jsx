@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
 import Editar from '../assets/editar.svg';
 import Lixeira from '../assets/lixeira.svg';
+import { formatarErroApi } from '../utils/apiError';
 
 function TelaParticipantes() {
 
@@ -38,62 +39,38 @@ function TelaParticipantes() {
     const HandleSalvar = async (e) => {
         e.preventDefault();
 
-        if (EditandoId) {
-            // Requisição PUT para editar
-            fetch(`http://127.0.0.1:8000/usuarios/${EditandoId}/`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    nome: nome,
-                    cpf: cpf,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao editar");
-                return response.json();
-            })
-            .then(data => {
-                alert("Participante editado com sucesso!");
-                carregarParticipantes(); // Atualiza a tabela com os dados do banco com a função definida inicialmente
-            })
-            .catch(error => {
-              console.error("Erro:", error);
-            alert("Não foi possível editar o participante.");
+        const url = EditandoId !== null
+            ? `http://127.0.0.1:8000/usuarios/${EditandoId}`
+            : "http://127.0.0.1:8000/usuarios/";
+        const method = EditandoId !== null ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, cpf }),
             });
 
-        } 
-        else {
-            // Requisição POST para criar
-            fetch("http://127.0.0.1:8000/usuarios/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    nome: nome,
-                    cpf: cpf,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Erro ao salvar");
-                return response.json();
-            })
-            .then(data => {
-                alert("Participante salvo com sucesso!");
-                carregarParticipantes(); // Atualiza a tabela
-            })
-            .catch(error => {
-              console.error("Erro:", error);
-              alert("Não foi possível salvar o participante.");
-            });
+            if (!response.ok) {
+                const erro = await response.json().catch(() => ({}));
+                throw new Error(formatarErroApi(
+                    erro,
+                    "Não foi possível salvar o participante.",
+                ));
+            }
+
+            alert(EditandoId !== null
+                ? "Participante editado com sucesso!"
+                : "Participante salvo com sucesso!");
+            carregarParticipantes();
+            setNome('');
+            setCpf('');
+            setIsEditandoId(null);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Erro ao salvar participante:", error);
+            alert(error.message);
         }
-
-        // Limpa os campos e fecha o modal
-        setNome('');
-        setCpf('');
-        setIsModalOpen(false);
     }
 
     const HandleEditar = (participante) => {
@@ -103,21 +80,31 @@ function TelaParticipantes() {
         setIsModalOpen(true)
     }
 
-    const HandleApagar = (id) => {
-        if (window.confirm("Tem certeza que deseja apagar esse participante?")) {
-            // Requisição DELETE para apagar
-            fetch(`http://127.0.0.1:8000/usuarios/${id}/`, {
+    const HandleApagar = async (id) => {
+        const confirmou = window.confirm(
+            "Tem certeza que deseja apagar este participante? " +
+            "Todos os certificados associados também serão apagados permanentemente."
+        );
+        if (!confirmou) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/usuarios/${id}`, {
                 method: "DELETE",
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Participante apagado com sucesso!");
-                    carregarParticipantes(); // Atualiza a tabela
-                } else {
-                    alert("Erro ao apagar o participante.");
-                }
-            })
-            .catch(error => console.error("Erro:", error));
+            });
+            const dados = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(formatarErroApi(
+                    dados,
+                    "Não foi possível apagar o participante.",
+                ));
+            }
+
+            alert("Participante e certificados associados apagados com sucesso!");
+            carregarParticipantes();
+        } catch (error) {
+            console.error("Erro ao apagar participante:", error);
+            alert(error.message);
         }
     }
 
@@ -183,12 +170,14 @@ function TelaParticipantes() {
                                 placeholder="digite seu nome completo..."
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
+                                required
                             />
                             <Input
                                 label="CPF"
                                 placeholder="digite seu cpf (000.000.000-00)..."
                                 value={cpf}
                                 onChange={(e) => setCpf(e.target.value)}
+                                required
                             />
                             <div className="modal-actions">
                                 <Button

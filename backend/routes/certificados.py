@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from database import get_session
 from models import Certificado
 from schemas import CertificadoSchema
+from routes.database_errors import commit_or_raise
 
 router = APIRouter(prefix="/certificados", tags=["Certificados"])
 
@@ -20,14 +21,10 @@ def listar_certificados(session: Session= Depends(get_session)):
 def criar_certificado(certificado_novo: CertificadoSchema, session: Session = Depends(get_session)):
 
     certificado = Certificado.model_validate(certificado_novo)
-    try:
-        session.add(certificado)
-        session.commit()
-        session.refresh(certificado)
-        return certificado
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR CERTIFICADO. VERIFIQUE SE O USUÁRIO E O EVENTO EXISTEM.\n Mais sobre o problema: {str(e)}")
+    session.add(certificado)
+    commit_or_raise(session, "USUÁRIO OU EVENTO INFORMADO NÃO EXISTE")
+    session.refresh(certificado)
+    return certificado
 
 # deleta um certificado pelo id
 @router.delete("/{certificado_id}")
@@ -37,7 +34,7 @@ def deletar_certificado(certificado_id: int, session: Session= Depends(get_sessi
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "CERTIFICADO NÃO ENCONTRADO")
     
     session.delete(db_certificado)
-    session.commit()
+    commit_or_raise(session, "NÃO FOI POSSÍVEL EXCLUIR O CERTIFICADO")
     return {"message": "CERTIFICADO DELETADO COM SUCESSO"}
 
 # retorna um certificado especifico pelo id
@@ -59,13 +56,7 @@ def atualizar_certificado(certificado_id: int, certificado_atualizado: Certifica
     for chave, valor in dados_novos.items():
         setattr(db_certificado, chave, valor)
     
-    try:
-        session.add(db_certificado)
-        session.commit()
-        session.refresh(db_certificado)
-        return db_certificado
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO NA ATUALIZAÇÃO DE CERTIFICADO. VERIFIQUE SE O USUÁRIO E O EVENTO EXISTEM. \n Mais sobre o problema: {str(e)}")
-
-
+    session.add(db_certificado)
+    commit_or_raise(session, "USUÁRIO OU EVENTO INFORMADO NÃO EXISTE")
+    session.refresh(db_certificado)
+    return db_certificado

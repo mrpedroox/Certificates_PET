@@ -1,9 +1,8 @@
-from fastapi import FastAPI, Depends, status, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel, Session, select
-from database import engine, get_session
+from sqlmodel import SQLModel
+from database import engine
 from contextlib import asynccontextmanager
-from models import Certificado, Evento, Usuario
 from routes import usuarios, eventos, certificados
 from seed import povoa_banco
 

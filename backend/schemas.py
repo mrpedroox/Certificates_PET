@@ -12,19 +12,17 @@ class UsuarioSchema(SQLModel):
         cpf = cpf_novo.replace(".", "").replace("-", "")
         
         if not cpf.isdigit() or len(cpf) != 11:
-            raise ValueError("ERRO NOS DADOS DO USUÁRIO. O CPF DEVE CONTER EXATAMENTE 11 NÚMEROS.")
+            raise ValueError("CPF inválido. Informe exatamente 11 números.")
         
         return cpf
 
     @field_validator("nome")
     @classmethod
     def validar_nome(cls, nome_novo: str):
-        nome = nome_novo.replace(" ", "")
-        
-        if len(nome) == 0:
+        if not nome_novo.strip():
             raise ValueError("ERRO NOS DADOS DO USUÁRIO. O NOME NÃO PODE SER VAZIO.")
         
-        return nome
+        return nome_novo
 
 class EventoSchema(SQLModel):
     texto: str
@@ -42,23 +40,19 @@ class EventoSchema(SQLModel):
 
     @field_validator("texto")
     @classmethod
-    def validar_texto(cls, nome_novo: str):
-        nome = nome_novo.replace(" ", "")
-        
-        if len(nome) == 0:
+    def validar_texto(cls, texto_novo: str):
+        if not texto_novo.strip():
             raise ValueError("ERRO NOS DADOS DO EVENTO. O TEXTO NÃO PODE SER VAZIO.")
         
-        return nome
+        return texto_novo
 
     @field_validator("titulo")
     @classmethod
-    def validar_titulo(cls, nome_novo: str):
-        nome = nome_novo.replace(" ", "")
-        
-        if len(nome) == 0:
+    def validar_titulo(cls, titulo_novo: str):
+        if not titulo_novo.strip():
             raise ValueError("ERRO NOS DADOS DO EVENTO. O TÍTULO NÃO PODE SER VAZIO.")
         
-        return nome
+        return titulo_novo
 
 class CertificadoSchema(SQLModel):
     carga_horaria: int

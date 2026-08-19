@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session, select, col
 from database import get_session
-from models import Evento
+from models import Certificado, Evento
 from schemas import EventoSchema
+from routes.database_errors import commit_or_raise
 
 router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
@@ -20,14 +21,10 @@ def listar_eventos(session: Session= Depends(get_session)):
 def criar_evento(evento_novo: EventoSchema, session: Session = Depends(get_session)):
     evento = Evento.model_validate(evento_novo)
 
-    try:
-        session.add(evento)
-        session.commit()
-        session.refresh(evento)
-        return evento
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR EVENTO.\n Mais sobre o problema: {str(e)}")
+    session.add(evento)
+    commit_or_raise(session, "NÃO FOI POSSÍVEL CRIAR O EVENTO COM OS DADOS INFORMADOS")
+    session.refresh(evento)
+    return evento
 
 # deleta um evento pelo id
 @router.delete("/{evento_id}")
@@ -36,9 +33,21 @@ def deletar_evento(evento_id: int, session: Session= Depends(get_session)):
     if not db_evento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "EVENTO NÃO ENCONTRADO")
     
+    certificados = session.exec(
+        select(Certificado).where(Certificado.id_evento == evento_id)
+    ).all()
+    for certificado in certificados:
+        session.delete(certificado)
+
     session.delete(db_evento)
-    session.commit()
-    return {"message": "EVENTO DELETADO COM SUCESSO"}
+    commit_or_raise(
+        session,
+        "NÃO FOI POSSÍVEL EXCLUIR O EVENTO",
+    )
+    return {
+        "message": "EVENTO DELETADO COM SUCESSO",
+        "certificados_removidos": len(certificados),
+    }
 
 # retorna uma lista com todos os eventos com um titulo especifico
 @router.get("/buscar")
@@ -69,12 +78,7 @@ def atualizar_evento(evento_id: int, evento_atualizado: EventoSchema, session: S
     for chave, valor in dados_novos.items():
         setattr(db_evento, chave, valor)
     
-    try:
-        session.add(db_evento)
-        session.commit()
-        session.refresh(db_evento)
-        return db_evento
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO NA ATUALIZAÇÃO DE EVENTO. \n Mais sobre o problema: {str(e)}")
-
+    session.add(db_evento)
+    commit_or_raise(session, "NÃO FOI POSSÍVEL ATUALIZAR O EVENTO COM OS DADOS INFORMADOS")
+    session.refresh(db_evento)
+    return db_evento

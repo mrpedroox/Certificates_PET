@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
 import Editar from '../assets/editar.svg';
 import Lixeira from '../assets/lixeira.svg';
+import { formatarErroApi } from '../utils/apiError';
 
 function TelaEventos() {
 
@@ -57,8 +58,8 @@ function TelaEventos() {
             data_fim: dataFim
         };
 
-        if (EditandoId) {
-            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}/`, { // Requisição PUT para editar o evento existente
+        if (EditandoId !== null) {
+            fetch(`http://127.0.0.1:8000/eventos/${EditandoId}`, { // Requisição PUT para editar o evento existente
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -125,20 +126,31 @@ function TelaEventos() {
 
     }
 
-    const HandleApagar = (id) => { // Requisição DELETE para deletar um evento
-        if (window.confirm("Tem certeza que deseja apagar esse evento?")) {
-            fetch(`http://127.0.0.1:8000/eventos/${id}/`, {
+    const HandleApagar = async (id) => {
+        const confirmou = window.confirm(
+            "Tem certeza que deseja apagar este evento? " +
+            "Todos os certificados associados também serão apagados permanentemente."
+        );
+        if (!confirmou) return;
+
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/eventos/${id}`, {
                 method: "DELETE",
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Evento apagado com sucesso!");
-                    carregarEventos(); 
-                } else {
-                    alert("Erro ao apagar o evento.");
-                }
-            })
-            .catch(error => console.error("Erro ao apagar:", error));
+            });
+            const dados = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(formatarErroApi(
+                    dados,
+                    "Não foi possível apagar o evento.",
+                ));
+            }
+
+            alert("Evento e certificados associados apagados com sucesso!");
+            carregarEventos();
+        } catch (error) {
+            console.error("Erro ao apagar evento:", error);
+            alert(error.message);
         }
     };
 
@@ -209,12 +221,14 @@ function TelaEventos() {
                                 placeholder="digite o título do evento..."
                                 value={titulo}
                                 onChange={(e) => setTitulo(e.target.value)}
+                                required
                             />
                             <Input
                                 label="Descrição/Texto explicativo"
                                 placeholder="digite a descrição do evento..."
                                 value={descricao}
                                 onChange={(e) => setDescricao(e.target.value)}
+                                required
                             />
                             <div className="form-row">
                                 <div className="input-container">

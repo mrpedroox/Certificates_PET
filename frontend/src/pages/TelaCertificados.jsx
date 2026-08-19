@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import ActionButton from '../components/ActionButton';
 import Input from '../components/Input';
@@ -57,12 +57,12 @@ function TelaCertificados() {
 
         // Montagem do objeto com os dados necessários
         const dadosCertificado = {
-            id_usuario: parseInt(participanteId),
-            id_evento: parseInt(eventoId),
-            carga_horaria: parseInt(cargaHoraria)
+            id_usuario: Number.parseInt(participanteId, 10),
+            id_evento: Number.parseInt(eventoId, 10),
+            carga_horaria: Number.parseInt(cargaHoraria, 10)
         };
 
-        if (EditandoId) {
+        if (EditandoId !== null) {
             // PUT para atualizar certificados
             fetch(`http://127.0.0.1:8000/certificados/${EditandoId}`, {
                 method: "PUT",
@@ -113,10 +113,10 @@ function TelaCertificados() {
     };
 
     const HandleEditar = (certificado) => {
-        setParticipanteId(certificado.participanteId || '');
-        setEventoId(certificado.eventoId || '');
-        setCargaHoraria(certificado.carga_horaria || '');
-        setIsEditandoId(certificado.id || '');
+        setParticipanteId(String(certificado.id_usuario));
+        setEventoId(String(certificado.id_evento));
+        setCargaHoraria(String(certificado.carga_horaria));
+        setIsEditandoId(certificado.id);
         setIsModalOpen(true);
     }
 
@@ -211,7 +211,9 @@ function TelaCertificados() {
                                 label="Carga Horária" 
                                 value={cargaHoraria} 
                                 onChange={(e) => setCargaHoraria(e.target.value)} 
-                                type="number" 
+                                type="number"
+                                min="1"
+                                required
                             />
 
                             <div className="modal-actions">
