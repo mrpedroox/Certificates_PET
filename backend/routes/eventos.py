@@ -3,6 +3,7 @@ from sqlmodel import Session, select, col
 from database import get_session
 from models import Evento
 from schemas import EventoSchema
+from routes.database_errors import commit_or_raise
 
 router = APIRouter(prefix="/eventos", tags=["Eventos"])
 
@@ -20,14 +21,10 @@ def listar_eventos(session: Session= Depends(get_session)):
 def criar_evento(evento_novo: EventoSchema, session: Session = Depends(get_session)):
     evento = Evento.model_validate(evento_novo)
 
-    try:
-        session.add(evento)
-        session.commit()
-        session.refresh(evento)
-        return evento
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR EVENTO.\n Mais sobre o problema: {str(e)}")
+    session.add(evento)
+    commit_or_raise(session, "NÃO FOI POSSÍVEL CRIAR O EVENTO COM OS DADOS INFORMADOS")
+    session.refresh(evento)
+    return evento
 
 # deleta um evento pelo id
 @router.delete("/{evento_id}")
@@ -69,12 +66,7 @@ def atualizar_evento(evento_id: int, evento_atualizado: EventoSchema, session: S
     for chave, valor in dados_novos.items():
         setattr(db_evento, chave, valor)
     
-    try:
-        session.add(db_evento)
-        session.commit()
-        session.refresh(db_evento)
-        return db_evento
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO NA ATUALIZAÇÃO DE EVENTO. \n Mais sobre o problema: {str(e)}")
-
+    session.add(db_evento)
+    commit_or_raise(session, "NÃO FOI POSSÍVEL ATUALIZAR O EVENTO COM OS DADOS INFORMADOS")
+    session.refresh(db_evento)
+    return db_evento

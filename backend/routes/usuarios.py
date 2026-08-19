@@ -3,6 +3,7 @@ from sqlmodel import Session, select, col
 from database import get_session
 from models import Usuario
 from schemas import UsuarioSchema
+from routes.database_errors import commit_or_raise
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
@@ -19,14 +20,10 @@ def listar_usuarios(session: Session= Depends(get_session)):
 @router.post("/", response_model= Usuario, status_code= status.HTTP_201_CREATED)
 def criar_usuario(usuario_novo: UsuarioSchema, session: Session = Depends(get_session)):
     usuario = Usuario.model_validate(usuario_novo)
-    try:
-        session.add(usuario)
-        session.commit()
-        session.refresh(usuario)
-        return usuario
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail = f"ERRO PRA CRIAR USUÁRIO. VERIFIQUE SE O USUÁRIO JÁ EXISTE.\n Mais sobre o problema: {str(e)}")
+    session.add(usuario)
+    commit_or_raise(session, "JÁ EXISTE UM USUÁRIO COM ESTE CPF")
+    session.refresh(usuario)
+    return usuario
 
 # deleta um usuario pelo id
 @router.delete("/{usuario_id}")
@@ -68,11 +65,7 @@ def atualizar_usuario(usuario_id: int, usuario_atualizado: UsuarioSchema, sessio
     for chave, valor in dados_novos.items():
         setattr(db_usuario, chave, valor)
     
-    try:
-        session.add(db_usuario)
-        session.commit()
-        session.refresh(db_usuario)
-        return db_usuario
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail= f"ERRO NA ATUALIZAÇÃO DE USUÁRIO.\n Mais sobre o problema: {str(e)}")
+    session.add(db_usuario)
+    commit_or_raise(session, "JÁ EXISTE UM USUÁRIO COM ESTE CPF")
+    session.refresh(db_usuario)
+    return db_usuario
