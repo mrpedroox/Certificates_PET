@@ -33,7 +33,10 @@ def deletar_usuario(usuario_id: int, session: Session= Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "USUÁRIO NÃO ENCONTRADO")
     
     session.delete(db_usuario)
-    session.commit()
+    commit_or_raise(
+        session,
+        "NÃO É POSSÍVEL EXCLUIR UM USUÁRIO QUE POSSUI CERTIFICADOS",
+    )
     return {"message": "USUÁRIO DELETADO COM SUCESSO"}
 
 # retorna uma lista com todos os usuarios com um nome especifico

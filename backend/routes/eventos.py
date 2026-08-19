@@ -34,7 +34,10 @@ def deletar_evento(evento_id: int, session: Session= Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "EVENTO NÃO ENCONTRADO")
     
     session.delete(db_evento)
-    session.commit()
+    commit_or_raise(
+        session,
+        "NÃO É POSSÍVEL EXCLUIR UM EVENTO QUE POSSUI CERTIFICADOS",
+    )
     return {"message": "EVENTO DELETADO COM SUCESSO"}
 
 # retorna uma lista com todos os eventos com um titulo especifico

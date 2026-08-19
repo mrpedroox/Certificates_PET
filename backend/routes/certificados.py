@@ -34,7 +34,7 @@ def deletar_certificado(certificado_id: int, session: Session= Depends(get_sessi
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "CERTIFICADO NÃO ENCONTRADO")
     
     session.delete(db_certificado)
-    session.commit()
+    commit_or_raise(session, "NÃO FOI POSSÍVEL EXCLUIR O CERTIFICADO")
     return {"message": "CERTIFICADO DELETADO COM SUCESSO"}
 
 # retorna um certificado especifico pelo id
@@ -60,4 +60,3 @@ def atualizar_certificado(certificado_id: int, certificado_atualizado: Certifica
     commit_or_raise(session, "USUÁRIO OU EVENTO INFORMADO NÃO EXISTE")
     session.refresh(db_certificado)
     return db_certificado
-
